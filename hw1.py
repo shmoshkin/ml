@@ -289,8 +289,11 @@ def create_square_features(df):
     ###########################################################################
     # TODO: Implement the function to add polynomial features                 #
     ###########################################################################
-    for col in df.columns:
-        df_poly[f"{col}_squared"] = df[col] ** 2
+    source_col = df.columns
+    for i, col1 in enumerate(source_col):
+        df_poly[col1 + '^2'] = df[col1] ** 2
+        for col2 in source_col[i+1:]:
+            df_poly[col1 + '*' + col2] = df[col1] * df[col2]
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
