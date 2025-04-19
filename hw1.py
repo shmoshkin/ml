@@ -197,10 +197,11 @@ def find_best_alpha(X_train, y_train, X_val, y_val, iterations):
     """
     
     alphas = [0.00001, 0.00003, 0.0001, 0.0003, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 2, 3]
-    alpha_dict = {} # {alpha_value: validation_loss}
+    
     ###########################################################################
     # TODO: Implement the function and find the best alpha value.             #
     ###########################################################################
+    alpha_dict = {}
     for key in alphas:
         np.random.seed(42)
         theta = np.random.random(X_train.shape[1])
