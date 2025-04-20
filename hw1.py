@@ -239,33 +239,26 @@ def forward_feature_selection(X_train, y_train, X_val, y_val, best_alpha, iterat
     # TODO: Implement the function and find the best alpha value.             #
     ###########################################################################
     remaining_features = list(range(X_train.shape[1]))
-    for _ in range(5):  # We want to select 5 features
+    for _ in range(5):
         best_feature = None
         lowest_val_loss = float('inf')
 
         for feature in remaining_features:
-            # Try adding this feature to the current selection
             trial_features = selected_features + [feature]
 
-            # Prepare training and validation sets with bias
             X_train_sub = np.column_stack((np.ones(X_train.shape[0]), X_train[:, trial_features]))
             X_val_sub = np.column_stack((np.ones(X_val.shape[0]), X_val[:, trial_features]))
 
-            # Initialize theta for gradient descent
             theta_init = np.zeros(X_train_sub.shape[1])
 
-            # Train model using efficient gradient descent
             theta, _ = efficient_gradient_descent(X_train_sub, y_train, theta_init, best_alpha, iterations)
 
-            # Compute validation loss
             val_loss = compute_cost(X_val_sub, y_val, theta)
 
-            # Update best feature if this one is better
             if val_loss < lowest_val_loss:
                 lowest_val_loss = val_loss
                 best_feature = feature
 
-        # Update selected and remaining features
         selected_features.append(best_feature)
         remaining_features.remove(best_feature)
     ###########################################################################
@@ -289,11 +282,11 @@ def create_square_features(df):
     ###########################################################################
     # TODO: Implement the function to add polynomial features                 #
     ###########################################################################
-    source_col = df.columns
-    for i, col1 in enumerate(source_col):
-        df_poly[col1 + '^2'] = df[col1] ** 2
-        for col2 in source_col[i+1:]:
-            df_poly[col1 + '*' + col2] = df[col1] * df[col2]
+    cols = df.columns
+    for i, col1 in enumerate(cols):
+        df_poly[f"{col1}^2"] = df[col1] ** 2
+        for col2 in cols[i+1:]:
+            df_poly[f"{col1}*{col2}"] = df[col1] * df[col2]
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
