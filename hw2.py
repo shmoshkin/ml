@@ -495,12 +495,31 @@ def chi_pruning(X_train, X_test):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    # Test different chi values (p-value cut-offs)
+    chi_values = [1, 0.5, 0.25, 0.1, 0.05, 0.0001]
+    
+    for chi in chi_values:
+        # Create and build tree with current chi value
+        tree = DecisionTree(X_train, calc_entropy, chi=chi, gain_ratio=True)
+        tree.build_tree()
+        
+        # Calculate accuracies and depth
+        train_acc = tree.calc_accuracy(X_train)
+        val_acc = tree.calc_accuracy(X_test)
+        tree_depth = tree.depth()
+        
+        # Store results
+        chi_training_acc.append(train_acc)
+        chi_validation_acc.append(val_acc)
+        depth.append(tree_depth)
+        
+    # Plot results
+    plt.figure(figsize=(12, 8))
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
 
-    return chi_training_acc, chi_testing_acc, depth
+    return chi_training_acc, chi_validation_acc, depth 
 
 
 def count_nodes(node):
@@ -516,7 +535,7 @@ def count_nodes(node):
     # TODO: Implement the function.                                           #
     ###########################################################################
     n_nodes = 1 
-    for child in node.children.values():
+    for child in node.children_values():
         n_nodes += count_nodes(child)
     ###########################################################################
     #                             END OF YOUR CODE                            #
