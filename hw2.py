@@ -76,7 +76,8 @@ def calc_gini(data):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    p_arr = np.unique(data[:,-1], return_counts=True)[1] / len(data)
+    gini = 1 - (p_arr ** 2).sum()
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -96,7 +97,8 @@ def calc_entropy(data):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    p_arr = np.unique(data[:,-1], return_counts=True)[1] / len(data)
+    entropy = - (p_arr * np.log2(p_arr)).sum()
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -186,7 +188,17 @@ class DecisionNode:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        goodness = self.impurity_func(self.data)
+        values, counts = np.unique(self.data[:,feature], return_counts=True)
+        for val in values:
+            filtered_data = self.data[self.data[:,feature] == val]
+            groups[val] = filtered_data  
+            goodness -= len(filtered_data) / len(self.data) * self.impurity_func(filtered_data)
+                
+        if self.gain_ratio: 
+            weights = counts / self.data.shape[0]
+            split_info = -(np.log2(weights) * weights).sum()
+            goodness = goodness / split_info
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
