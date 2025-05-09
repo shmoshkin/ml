@@ -533,12 +533,9 @@ def count_nodes(node):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    if node is None:
-        return 0
-    count = 1
+    n_nodes = 1
     for child in node.children:
-        count += count_nodes(child)
-    return count
+        n_nodes += count_nodes(child)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
