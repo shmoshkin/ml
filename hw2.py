@@ -163,13 +163,20 @@ class DecisionNode:
         This function has no return value - it stores the feature importance in 
         self.feature_importance
         """
-        ###########################################################################
-        # TODO: Implement the function.                                           #
-        ###########################################################################
-        pass
-        ###########################################################################
-        #                             END OF YOUR CODE                            #
-        ###########################################################################
+        # Calculate the probability of reaching this node
+        node_probability = len(self.data) / n_total_sample
+        
+        # Calculate the impurity before split
+        impurity_before = self.impurity_func(self.data)
+        
+        # Calculate the weighted impurity after split
+        impurity_after = 0
+        for child in self.children:
+            child_probability = len(child.data) / n_total_sample
+            impurity_after += child_probability * self.impurity_func(child.data)
+        
+        # Feature importance is the weighted decrease in impurity
+        self.feature_importance = node_probability * (impurity_before - impurity_after)
     
     def goodness_of_split(self, feature):
         """
