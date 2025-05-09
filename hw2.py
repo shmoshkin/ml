@@ -514,7 +514,6 @@ def chi_pruning(X_train, X_test):
         depth.append(tree_depth)
         
     # Plot results
-    plt.figure(figsize=(12, 8))
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -534,9 +533,12 @@ def count_nodes(node):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    n_nodes = 1 
-    for child in node.children_values():
-        n_nodes += count_nodes(child)
+    if node is None:
+        return 0
+    count = 1
+    for child in node.children:
+        count += count_nodes(child)
+    return count
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
