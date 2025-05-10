@@ -245,7 +245,7 @@ class DecisionNode:
         ###########################################################################
         labels = self.data[:, -1]
 
-        if self.depth + 1 >= self.max_depth or len(np.unique(labels)) == 1 or self.data.shape[1] <= 1:
+        if self.depth + 1 > self.max_depth or len(np.unique(labels)) == 1 or self.data.shape[1] <= 1:
             self.terminal = True
             return
 
