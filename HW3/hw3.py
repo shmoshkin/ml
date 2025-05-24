@@ -4,7 +4,6 @@ import math
 class conditional_independence():
 
     def __init__(self):
-
         # You need to fill the None value with *valid* probabilities
         self.X = {0: 0.3, 1: 0.7}  # P(X=x)
         self.Y = {0: 0.3, 1: 0.7}  # P(Y=y)
@@ -44,7 +43,7 @@ class conditional_independence():
 
     def is_X_Y_dependent(self):
         """
-        return True iff X and Y are depndendent
+        return True iff X and Y are depndependent
         """
         X = self.X
         Y = self.Y
@@ -52,9 +51,9 @@ class conditional_independence():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        p_x = np.array(list(X.values())) # could reshape x to (a,b) and y to (b,a) but not generalizing
-        p_y = np.array(list(Y.values())).reshape(2,1) # would generalize dimensions but all binary
-        px_py = (p_x * p_y).flatten()
+        p_x = np.array(list(X.values()))
+        p_y = np.array(list(Y.values()))
+        px_py = np.outer(p_x, p_y).flatten()
         return not np.allclose(px_py, list(X_Y.values()))
         ###########################################################################
         #                             END OF YOUR CODE                            #
@@ -73,10 +72,8 @@ class conditional_independence():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        trues = 0
-        for i,j,k in X_Y_C.keys():
-            trues += np.isclose(X_Y_C[i,j,k] / C[k], (X_C[i,k] / C[k] * Y_C[j,k] / C[k]))
-        return trues == len(X_Y_C)
+        return np.all([np.isclose(X_Y_C[x,y,c] / C[c], (X_C[x,c] / C[c] * Y_C[y,c] / C[c])) 
+                      for x,y,c in X_Y_C.keys()])
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -92,7 +89,8 @@ def poisson_log_pmf(k, rate):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    log_p = np.log(((rate ** k) * np.exp(-rate)) / math.factorial(k))
+    # log(λ^k * e^(-λ) / k!) = k*log(λ) - λ - log(k!)
+    log_p = k * np.log(rate) - rate - np.log(math.factorial(k))
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -109,9 +107,12 @@ def get_poisson_log_likelihoods(samples, rates):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
+    # Create vectorized version of poisson_log_pmf
     vectorized_poisson_log_pmf = np.vectorize(poisson_log_pmf)
-    log_likelihood_arr = np.array([vectorized_poisson_log_pmf(samples,𝜆) for 𝜆 in rates])
-    likelihoods = log_likelihood_arr.sum(axis=1) # sum the rows to get log_lik for each 𝜆
+    
+    # Calculate log likelihood for each rate
+    log_likelihood_arr = np.array([vectorized_poisson_log_pmf(samples, rate) for rate in rates])
+    likelihoods = log_likelihood_arr.sum(axis=1)  # sum the rows to get log_lik for each rate
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -129,8 +130,10 @@ def possion_iterative_mle(samples, rates):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    rate = rates[np.argmax(likelihoods)] # argmax gives index(row) with highest log_likelihood rate
-
+    # Find the index of the maximum log likelihood
+    max_likelihood_idx = np.argmax(likelihoods)
+    # Return the corresponding rate
+    rate = rates[max_likelihood_idx]
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -187,8 +190,8 @@ class NaiveNormalClassDistribution():
         # TODO: Implement the function.                                           #
         ###########################################################################
         self.class_value = class_value
-        self.input_data = dataset 
-        self.dataset = dataset[dataset[:,-1] == self.class_value][:,:-1]
+        self.original_dataset = dataset
+        self.class_dataset = dataset[dataset[:,-1] == self.class_value][:,:-1]
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -201,7 +204,7 @@ class NaiveNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        prior = self.dataset.shape[0] / self.input_data.shape[0]
+        prior = self.class_dataset.shape[0] / self.original_dataset.shape[0]
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -215,9 +218,10 @@ class NaiveNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        emp_mean = self.dataset.mean(axis=0)
-        emp_std = self.dataset.std(axis=0)
+        emp_mean = self.class_dataset.mean(axis=0)
+        emp_std = self.class_dataset.std(axis=0)
         vect_normal_pdf = np.vectorize(normal_pdf)
+
         likelihood = np.prod(vect_normal_pdf(x[:-1], emp_mean, emp_std))
         ###########################################################################
         #                             END OF YOUR CODE                            #
@@ -233,7 +237,9 @@ class NaiveNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        posterior = self.get_instance_likelihood(x) * self.get_prior()
+        likelihood = self.get_instance_likelihood(x)
+        prior = self.get_prior()
+        posterior = likelihood * prior
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -298,8 +304,8 @@ def compute_accuracy(test_set, map_classifier):
     # TODO: Implement the function.                                           #
     ###########################################################################
     prediction = np.apply_along_axis(map_classifier.predict,axis=1,arr=test_set)
-    corrects = np.sum(prediction == test_set[:,-1])
-    acc = corrects / test_set.shape[0]
+    correctly_classified = np.sum(prediction == test_set[:,-1])
+    acc = correctly_classified / test_set.shape[0]
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -320,12 +326,14 @@ def multi_normal_pdf(x, mean, cov):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    d_exp, det, inv = (x.shape[0] - 1)/2, np.linalg.det(cov), np.linalg.pinv(cov)
-    x_mu = x - mean.T
+    d = float(x.shape[0] - 1)  # omit class
+    det = np.linalg.det(cov)
+    inv = np.linalg.inv(cov)
 
-    first_term = 1 / ((2 * np.pi) ** d_exp * det ** 0.5)
-    e_power = -0.5 * (x_mu @ inv @ x_mu)
-    pdf = first_term * np.exp(e_power)
+    norm_const = 1 / (np.power((2 * np.pi), d / 2) * np.power(det, 0.5))
+    x_mean = x - mean.T
+    e_power = -0.5 * (x_mean @ inv @ x_mean)
+    pdf = norm_const * np.exp(e_power)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -345,9 +353,10 @@ class MultiNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
+        # Get only features (exclude label column)
+        self.class_dataset = dataset[dataset[:,-1] == class_value][:, :-1]
+        self.original_dataset = dataset
         self.class_value = class_value
-        self.input_data = dataset
-        self.dataset = dataset[dataset[:,-1] == self.class_value][:, :-1]
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -360,7 +369,7 @@ class MultiNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        prior = self.dataset.shape[0] / self.input_data.shape[0]
+        prior = self.class_dataset.shape[0] / self.original_dataset.shape[0]
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -374,8 +383,8 @@ class MultiNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        emp_mean = self.dataset.mean(axis=0)
-        cov_matrix = np.cov(self.dataset.T)
+        emp_mean = self.class_dataset.mean(axis=0)
+        cov_matrix = np.cov(self.class_dataset.T)
         likelihood = multi_normal_pdf(x[:-1], emp_mean, cov_matrix)
         ###########################################################################
         #                             END OF YOUR CODE                            #
@@ -389,9 +398,11 @@ class MultiNormalClassDistribution():
         """
         posterior = None
         ###########################################################################
-        # TODO: Implement the function.                                           #
+        likelihood = self.get_instance_likelihood(x)
+        prior = self.get_prior()
+        posterior = likelihood * prior
         ###########################################################################
-        posterior = self.get_instance_likelihood(x) * self.get_prior()
+        pass
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -491,9 +502,9 @@ class DiscreteNBClassDistribution():
         # TODO: Implement the function.                                           #
         ###########################################################################
         self.class_value = class_value
-        self.input_data = dataset
-        self.dataset = dataset[dataset[:,-1] == self.class_value][:, :-1]
-        self.n_i = self.dataset.shape[0]
+        self.original_dataset = dataset
+        self.class_dataset = dataset[dataset[:, -1] == self.class_value][:, 0:-1]
+        self.n_i = self.class_dataset.shape[0]  # The number of training instances with the class A_i
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -507,7 +518,7 @@ class DiscreteNBClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        prior = self.n_i / self.input_data.shape[0]
+        prior = self.n_i / self.original_dataset.shape[0]
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -518,16 +529,18 @@ class DiscreteNBClassDistribution():
         Returns the likelihood of the instance under 
         the class according to the dataset distribution.
         """
+        likelihood = None
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
         likelihood = 1
-        for instance in range (len(x)-1):
-            # 𝑛𝑖𝑗 Num of training instances w class 𝐴𝑖 & value 𝑥𝑗 in relevant attribute
-            n_ij = self.dataset[self.dataset[:,instance] == x[instance]].shape[0]
-            v_j = len(np.unique(self.dataset[:,instance])) # |𝑉𝑗| Num possible vals of relevant attrib
-            p_x = ((n_ij + 1) / (self.n_i + np.abs(v_j))) if n_ij > 0 else EPSILLON # value not in support of PMF
+        for instance in range(len(x) - 1):
+            # n_ij - number of training instances with class Ai & value xj in relevant attribute
+            n_ij = self.class_dataset[self.class_dataset[:, instance] == x[instance]].shape[0]
+            v_j = len(np.unique(self.class_dataset[:, instance]))  # |V_j| Number of possible values of relevant attribute
+            p_x = ((n_ij + 1) / (self.n_i + np.abs(v_j))) if n_ij > 0 else EPSILLON  # value not in support of PMF
             likelihood *= p_x
+            # P(xj|Ai) = (n_ij+1) / ni+|Vj|
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -564,7 +577,8 @@ class MAPClassifier_DNB():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        self.ccd0 = ccd0
+        self.ccd1 = ccd1
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -582,7 +596,7 @@ class MAPClassifier_DNB():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        pred = np.argmax([self.ccd0.get_instance_posterior(x), self.ccd1.get_instance_posterior(x)])
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -601,7 +615,9 @@ class MAPClassifier_DNB():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        predictions = np.apply_along_axis(self.predict, 1, test_set)
+        correct = np.sum(predictions == test_set[:, -1])
+        acc = correct / test_set.shape[0]
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
