@@ -10,35 +10,35 @@ class conditional_independence():
         self.C = {0: 0.5, 1: 0.5}  # P(C=c)
 
         self.X_Y = {
-            (0, 0): None,
-            (0, 1): None,
-            (1, 0): None,
-            (1, 1): None
+            (0, 0): 0.0,
+            (0, 1): 0.3,
+            (1, 0): 0.3,
+            (1, 1): 0.4
         }  # P(X=x, Y=y)
 
         self.X_C = {
-            (0, 0): None,
-            (0, 1): None,
-            (1, 0): None,
-            (1, 1): None
+            (0, 0): 0,
+            (0, 1): 0.3,
+            (1, 0): 0.5,
+            (1, 1): 0.2
         }  # P(X=x, C=y)
 
         self.Y_C = {
-            (0, 0): None,
-            (0, 1): None,
-            (1, 0): None,
-            (1, 1): None
+            (0, 0): 0.3,
+            (0, 1): 0,
+            (1, 0): 0.2,
+            (1, 1): 0.5
         }  # P(Y=y, C=c)
 
         self.X_Y_C = {
-            (0, 0, 0): None,
-            (0, 0, 1): None,
-            (0, 1, 0): None,
-            (0, 1, 1): None,
-            (1, 0, 0): None,
-            (1, 0, 1): None,
-            (1, 1, 0): None,
-            (1, 1, 1): None,
+            (0, 0, 0): 0,
+            (0, 0, 1): 0,
+            (0, 1, 0): 0,
+            (0, 1, 1): 0.3,
+            (1, 0, 0): 0.3,
+            (1, 0, 1): 0,
+            (1, 1, 0): 0.2,
+            (1, 1, 1): 0.2,
         }  # P(X=x, Y=y, C=c)
 
     def is_X_Y_dependent(self):
@@ -51,7 +51,10 @@ class conditional_independence():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        p_x = np.array(list(X.values())) # could reshape x to (a,b) and y to (b,a) but not generalizing
+        p_y = np.array(list(Y.values())).reshape(2,1) # would generalize dimensions but all binary
+        px_py = (p_x * p_y).flatten()
+        return not np.allclose(px_py, list(X_Y.values()))
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -69,7 +72,10 @@ class conditional_independence():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        trues = 0
+        for i,j,k in X_Y_C.keys():
+            trues += np.isclose(X_Y_C[i,j,k] / C[k], (X_C[i,k] / C[k] * Y_C[j,k] / C[k]))
+        return trues == len(X_Y_C)
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
