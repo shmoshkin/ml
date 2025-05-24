@@ -480,7 +480,7 @@ class MaxLikelihood():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pred = np.argmax([self.ccd0.get_instance_likelihood(x), self.ccd1.get_instance_likelihood(x)])
+        pred = np.argmax([self.ccd0.get_instance_posterior(x), self.ccd1.get_instance_posterior(x)])
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
