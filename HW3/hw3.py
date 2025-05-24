@@ -478,7 +478,7 @@ class MaxLikelihood():
         """
         pred = None
         ###########################################################################
-        # TODO: Implement the function.                                           #
+        # TODO: Implement the function.                                            #
         ###########################################################################
         pred = np.argmax([self.ccd0.get_instance_likelihood(x), self.ccd1.get_instance_likelihood(x)])
         ###########################################################################
