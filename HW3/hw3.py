@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 class conditional_independence():
 
@@ -61,7 +62,7 @@ class conditional_independence():
 
     def is_X_Y_given_C_independent(self):
         """
-        return True iff X_given_C and Y_given_C are indepndendent
+        return True iff X_given_C and Y_given_C are indepndependent
         """
         X = self.X
         Y = self.Y
@@ -91,7 +92,7 @@ def poisson_log_pmf(k, rate):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    log_p = np.log(((rate ** k) * np.exp(-rate)) / math.factorial(k))
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -108,7 +109,9 @@ def get_poisson_log_likelihoods(samples, rates):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    vectorized_poisson_log_pmf = np.vectorize(poisson_log_pmf)
+    log_likelihood_arr = np.array([vectorized_poisson_log_pmf(samples,𝜆) for 𝜆 in rates])
+    likelihoods = log_likelihood_arr.sum(axis=1) # sum the rows to get log_lik for each 𝜆
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -126,7 +129,8 @@ def possion_iterative_mle(samples, rates):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    rate = rates[np.argmax(likelihoods)] # argmax gives index(row) with highest log_likelihood rate
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -142,7 +146,7 @@ def possion_analytic_mle(samples):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    mean = samples.mean()
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
